@@ -371,12 +371,6 @@ textarea { resize: vertical; min-height: 56px; }
       <h3 id="txModalTitle">Add Transaction</h3>
       <button class="modal-close" onclick="closeModal('txModal')">×</button>
     </div>
-    <div style="padding:16px 18px 8px;">
-      <div class="type-toggle" id="txTypeToggle">
-        <button id="btnIn" onclick="setTxType('in')" class="sel-in">💚 Cash In</button>
-        <button id="btnOut" onclick="setTxType('out')">🔴 Cash Out</button>
-      </div>
-    </div>
     <div class="form-grid">
       <div class="form-group">
         <label>Date</label>
@@ -410,8 +404,12 @@ textarea { resize: vertical; min-height: 56px; }
         </select>
       </div>
       <div class="form-group">
-        <label>Amount (VND)</label>
-        <input type="number" id="txAmount" placeholder="e.g. 5000000" min="0">
+        <label style="color:var(--green)">💚 Cash In (VND)</label>
+        <input type="number" id="txIncome" placeholder="Leave blank if none" min="0">
+      </div>
+      <div class="form-group">
+        <label style="color:var(--red)">🔴 Cash Out (VND)</label>
+        <input type="number" id="txExpense" placeholder="Leave blank if none" min="0">
       </div>
       <div class="form-group">
         <label>PIC</label>
@@ -434,6 +432,7 @@ textarea { resize: vertical; min-height: 56px; }
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('txModal')">Cancel</button>
+      <button class="btn btn-ghost" id="btnSaveAnother" onclick="saveTxAndAnother()" style="display:none">Save & Add Another ↩</button>
       <button class="btn btn-primary" onclick="saveTx()">Save Transaction</button>
     </div>
   </div>
@@ -1027,6 +1026,15 @@ function buildTransactionView(container) {
   // Always show real-time current cash (all transactions, not filtered)
   const currentCash = getCurrentCash();
 
+  // Build running balance map (all transactions, sorted by date asc)
+  const allSorted = [...txs].sort((a,b) => new Date(a.date)-new Date(b.date));
+  const runningBalMap = {};
+  let running = db.settings.startingBalance || 0;
+  allSorted.forEach(t => {
+    running += (t.income||0) - (t.expense||0);
+    runningBalMap[t.id] = running;
+  });
+
   container.innerHTML = `
   <div class="cash-hero" style="margin-bottom:14px">
     <div class="cash-hero-left">
@@ -1077,11 +1085,15 @@ function buildTransactionView(container) {
         <th>Date</th><th>Dept</th><th>Category</th><th>Description</th><th>Tour/Project</th>
         <th style="text-align:right">Income ₫</th>
         <th style="text-align:right">Expense ₫</th>
+        <th style="text-align:right">Balance ₫</th>
         <th>PIC</th><th></th>
       </tr></thead>
       <tbody id="txBody">
-        ${filtered.length===0 ? `<tr><td colspan="9"><div class="empty"><div class="empty-ico">📭</div>No transactions found</div></td></tr>` :
-          filtered.map(t=>`<tr>
+        ${filtered.length===0 ? `<tr><td colspan="10"><div class="empty"><div class="empty-ico">📭</div>No transactions found</div></td></tr>` :
+          filtered.map(t=>{
+            const bal = runningBalMap[t.id] ?? 0;
+            const balColor = bal >= 0 ? 'var(--green)' : 'var(--red)';
+            return `<tr>
             <td style="white-space:nowrap;font-size:11.5px">${t.date}</td>
             <td><span class="badge badge-gray" style="font-size:10px">${t.dept}</span></td>
             <td style="white-space:nowrap">${t.cat}</td>
@@ -1089,12 +1101,13 @@ function buildTransactionView(container) {
             <td style="color:var(--muted);font-size:11.5px">${t.tour||'—'}</td>
             <td style="text-align:right">${t.income>0?`<span class="amt-in">+${fmt(t.income)}</span>`:'—'}</td>
             <td style="text-align:right">${t.expense>0?`<span class="amt-out">-${fmt(t.expense)}</span>`:'—'}</td>
+            <td style="text-align:right;font-weight:600;white-space:nowrap;color:${balColor}">${fmtShort(bal)} ₫</td>
             <td>${t.pic}</td>
             <td style="white-space:nowrap">
               <button class="btn btn-xs btn-ghost" onclick="openTxModal(${t.id})" style="margin-right:3px" title="Edit">✏️</button>
               <button class="btn btn-xs btn-red" onclick="deleteTx(${t.id})" title="Delete">✕</button>
             </td>
-          </tr>`).join('')
+          </tr>`;}).join('')
         }
       </tbody>
       ${filtered.length>0?`
@@ -1102,7 +1115,7 @@ function buildTransactionView(container) {
         <td colspan="5" style="font-weight:700">TOTAL</td>
         <td style="text-align:right"><span class="amt-in">+${fmt(totalIn)}</span></td>
         <td style="text-align:right"><span class="amt-out">-${fmt(totalOut)}</span></td>
-        <td colspan="2"></td>
+        <td colspan="3"></td>
       </tr></tfoot>`:''}
     </table>
   </div>`;
@@ -1414,23 +1427,24 @@ function openTxModal(id) {
   if (id) {
     const t = db.transactions.find(x => x.id === id);
     if (!t) return;
-    document.getElementById('txDate').value  = t.date;
-    document.getElementById('txDept').value  = t.dept;
-    document.getElementById('txCat').value   = t.cat;
-    document.getElementById('txTour').value  = t.tour || '';
-    document.getElementById('txDesc').value  = t.desc;
-    document.getElementById('txPic').value   = t.pic;
-    const isIn = t.income > 0;
-    document.getElementById('txAmount').value = isIn ? t.income : t.expense;
-    setTxType(isIn ? 'in' : 'out');
+    document.getElementById('txDate').value    = t.date;
+    document.getElementById('txDept').value    = t.dept;
+    document.getElementById('txCat').value     = t.cat;
+    document.getElementById('txTour').value    = t.tour || '';
+    document.getElementById('txDesc').value    = t.desc;
+    document.getElementById('txPic').value     = t.pic;
+    document.getElementById('txIncome').value  = t.income  > 0 ? t.income  : '';
+    document.getElementById('txExpense').value = t.expense > 0 ? t.expense : '';
   } else {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('txDate').value   = today;
-    document.getElementById('txAmount').value = '';
-    document.getElementById('txDesc').value   = '';
-    document.getElementById('txTour').value   = '';
-    setTxType('out');
+    document.getElementById('txDate').value    = today;
+    document.getElementById('txIncome').value  = '';
+    document.getElementById('txExpense').value = '';
+    document.getElementById('txDesc').value    = '';
+    document.getElementById('txTour').value    = '';
   }
+  // Show "Save & Add Another" only when creating (not editing)
+  document.getElementById('btnSaveAnother').style.display = id ? 'none' : '';
   document.getElementById('txModal').classList.add('show');
 }
 
@@ -1443,11 +1457,12 @@ function setTxType(type) {
 }
 
 function saveTx() {
-  const amount = parseFloat(document.getElementById('txAmount').value);
-  const desc   = document.getElementById('txDesc').value.trim();
-  const date   = document.getElementById('txDate').value;
-  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
-  if (!desc)   { alert('Please enter a description.'); return; }
+  const income  = parseFloat(document.getElementById('txIncome').value)  || 0;
+  const expense = parseFloat(document.getElementById('txExpense').value) || 0;
+  const desc    = document.getElementById('txDesc').value.trim();
+  const date    = document.getElementById('txDate').value;
+  if (income <= 0 && expense <= 0) { alert('Please enter a Cash In and/or Cash Out amount.'); return; }
+  if (!desc) { alert('Please enter a description.'); return; }
 
   const txData = {
     date,
@@ -1456,8 +1471,8 @@ function saveTx() {
     cat:     document.getElementById('txCat').value,
     tour:    document.getElementById('txTour').value.trim(),
     desc,
-    income:  currentTxType === 'in'  ? amount : 0,
-    expense: currentTxType === 'out' ? amount : 0,
+    income,
+    expense,
     pic:     document.getElementById('txPic').value,
   };
 
@@ -1479,6 +1494,35 @@ function saveTx() {
   } else if (currentPage === 'dashboard') {
     document.getElementById('content').innerHTML = renderDashboard();
   }
+}
+
+function saveTxAndAnother() {
+  const income  = parseFloat(document.getElementById('txIncome').value)  || 0;
+  const expense = parseFloat(document.getElementById('txExpense').value) || 0;
+  const desc    = document.getElementById('txDesc').value.trim();
+  const date    = document.getElementById('txDate').value;
+  if (income <= 0 && expense <= 0) { alert('Please enter a Cash In and/or Cash Out amount.'); return; }
+  if (!desc) { alert('Please enter a description.'); return; }
+
+  const txData = {
+    date,
+    month:   monthFromDate(date),
+    dept:    document.getElementById('txDept').value,
+    cat:     document.getElementById('txCat').value,
+    tour:    document.getElementById('txTour').value.trim(),
+    desc,
+    income,
+    expense,
+    pic:     document.getElementById('txPic').value,
+  };
+  db.transactions.push({ id: db.settings.nextTxId++, ...txData });
+  saveDB();
+  toast('✅ Saved! Add the next entry below.');
+
+  // Keep modal open — retain context (date/dept/cat/tour/pic), clear amounts + desc
+  document.getElementById('txIncome').value  = '';
+  document.getElementById('txExpense').value = '';
+  document.getElementById('txDesc').value    = '';
 }
 
 function deleteTx(id) {
