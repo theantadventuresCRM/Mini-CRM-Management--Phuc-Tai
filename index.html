@@ -227,6 +227,120 @@ textarea { resize: vertical; min-height: 56px; }
 .setup-user-block { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
 .setup-user-block h4 { font-size: 12px; font-weight: 700; color: #7dd3a8; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .setup-note { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 14px; line-height: 1.5; }
+/* ---- MOBILE & ORIENTATION ---- */
+#sidebarOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; }
+#sidebarOverlay.show { display:block; }
+#hamburger { display:none; background:none; border:none; cursor:pointer; padding:4px 6px; margin-right:6px; color:var(--text); font-size:22px; line-height:1; flex-shrink:0; }
+
+@media (max-width: 768px) {
+  body { overflow:auto; height:auto; min-height:100dvh; flex-direction:column; }
+  .sidebar { position:fixed; top:0; left:-215px; height:100vh; height:100dvh; z-index:1000; transition:left 0.25s ease; width:210px; }
+  .sidebar.open { left:0; box-shadow:4px 0 20px rgba(0,0,0,0.35); }
+  #hamburger { display:flex; align-items:center; }
+  .main { width:100vw; min-height:100dvh; }
+  .topbar { padding:10px 14px; gap:6px; }
+  .topbar-left h2 { font-size:15px; }
+  .topbar-left p { display:none; }
+  .topbar-right { flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+  .content { padding:12px 10px; overflow-y:auto; }
+  /* Tables */
+  .card table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%; }
+  table th, table td { padding:7px 6px !important; font-size:11.5px !important; white-space:nowrap; }
+  /* Grids */
+  .kpi-grid { grid-template-columns:1fr 1fr !important; gap:8px !important; }
+  .plan-grid { grid-template-columns:1fr !important; }
+  .reflect-grid { grid-template-columns:1fr !important; }
+  .form-grid { grid-template-columns:1fr 1fr !important; }
+  .form-group.span3 { grid-column:1 / -1 !important; }
+  /* Cash hero */
+  .cash-hero { flex-direction:column !important; gap:10px !important; }
+  .cash-hero-right { display:none !important; }
+  .cash-hero-amount { font-size:24px !important; }
+  /* Month/day pills */
+  .month-pills { flex-wrap:wrap; }
+  .day-pill-row { gap:5px; }
+  .day-pill { font-size:10.5px; padding:4px 9px; }
+  /* Modals */
+  .modal { width:96vw !important; max-height:90dvh; overflow-y:auto; }
+  /* Person toggle */
+  .person-toggle button { font-size:11px; padding:5px 10px; }
+  /* Badges */
+  .badge { font-size:9px !important; padding:2px 5px !important; }
+  /* Buttons */
+  .btn { font-size:12px; padding:6px 12px; }
+  /* Type toggle */
+  .type-toggle { gap:6px; }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .sidebar { position:fixed; top:0; left:-215px; height:100vh; z-index:1000; transition:left 0.25s ease; }
+  .sidebar.open { left:0; box-shadow:4px 0 20px rgba(0,0,0,0.35); }
+  #hamburger { display:flex; align-items:center; }
+  body { overflow:auto; }
+  .main { min-height:100vh; }
+  .content { padding:12px 14px; overflow-y:auto; }
+  .kpi-grid { grid-template-columns:repeat(3,1fr) !important; }
+  .plan-grid { grid-template-columns:1fr 1fr !important; }
+  .reflect-grid { grid-template-columns:1fr 1fr 1fr !important; }
+  .cash-hero-right { display:none !important; }
+  .card table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+}
+
+/* ---- Planning Module ---- */
+.plan-section { background:#fff; border:1px solid var(--border); border-radius:10px; padding:18px 20px; margin-bottom:14px; }
+.plan-section-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.priority-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.priority-num { width:22px; height:22px; border-radius:50%; background:var(--green); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.priority-input { flex:1; border:1px solid var(--border); border-radius:6px; padding:7px 10px; font-size:13px; font-family:inherit; outline:none; }
+.priority-input:focus { border-color:var(--green); }
+.task-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid rgba(0,0,0,0.05); }
+.task-row:last-child { border-bottom:none; }
+.task-row-top { display:flex; align-items:center; gap:8px; width:100%; }
+.task-row-bottom { display:none; }
+.task-cb { width:16px; height:16px; accent-color:var(--green); cursor:pointer; flex-shrink:0; }
+.task-text-inp { flex:1; border:none; border-bottom:1px solid transparent; padding:3px 4px; font-size:13px; font-family:inherit; background:transparent; outline:none; color:var(--text); min-width:0; }
+.task-text-inp:focus { border-bottom-color:var(--green); }
+.task-text-inp.done { text-decoration:line-through; color:var(--muted); }
+.task-del { color:var(--muted); cursor:pointer; font-size:11px; padding:3px 7px; opacity:0.7; background:none; border:1px solid var(--border); border-radius:5px; font-family:inherit; transition:all 0.15s; }
+.task-del:hover { opacity:1; color:#fff; background:var(--red); border-color:var(--red); }
+.task-edit-btn { color:var(--muted); cursor:pointer; font-size:11px; padding:3px 7px; background:none; border:1px solid var(--border); border-radius:5px; font-family:inherit; transition:all 0.15s; }
+.task-edit-btn:hover { color:var(--green); border-color:var(--green); }
+.task-tag { font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:10px; cursor:pointer; border:1.5px solid; transition:all 0.15s; user-select:none; }
+.task-tag.tag-todo   { border-color:#d1d5db; color:#6b7280; background:#f3f4f6; }
+.task-tag.tag-todo.active   { border-color:#6b7280; color:#fff; background:#6b7280; }
+.task-tag.tag-priority { border-color:#d97706; color:#d97706; background:#fef9ee; }
+.task-tag.tag-priority.active { border-color:#d97706; color:#fff; background:#d97706; }
+.task-tag.tag-urgent { border-color:#dc2626; color:#dc2626; background:#fff5f5; }
+.task-tag.tag-urgent.active { border-color:#dc2626; color:#fff; background:#dc2626; }
+.plan-textarea { width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13px; font-family:inherit; resize:vertical; min-height:70px; outline:none; color:var(--text); }
+.plan-textarea:focus { border-color:var(--green); }
+.plan-fin-input { width:100%; border:1px solid var(--border); border-radius:6px; padding:8px 11px; font-size:13px; font-family:inherit; outline:none; color:var(--text); }
+.plan-fin-input:focus { border-color:var(--green); }
+.add-task-btn { display:flex; align-items:center; gap:6px; color:var(--green); font-size:12.5px; font-weight:600; cursor:pointer; padding:7px 0 0; background:none; border:none; font-family:inherit; }
+.add-task-btn:hover { opacity:0.8; }
+.person-toggle { display:flex; gap:6px; }
+.person-toggle button { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:#fff; font-size:12px; font-weight:600; cursor:pointer; color:var(--muted); transition:all 0.15s; }
+.person-toggle button.active { background:var(--green); border-color:var(--green); color:#fff; }
+.day-pill-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.day-pill { padding:5px 13px; border-radius:16px; border:1.5px solid var(--border); background:#fff; font-size:11.5px; font-weight:600; cursor:pointer; color:var(--muted); transition:all 0.15s; }
+.day-pill:hover { border-color:var(--green); color:var(--green); }
+.day-pill.active { background:var(--green); border-color:var(--green); color:#fff; }
+.day-pill.has-plan { border-color:#b2dfcb; color:#2e7d52; }
+.plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:800px){ .plan-grid { grid-template-columns:1fr; } }
+.plan-3col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; align-items:start; }
+@media(max-width:960px){ .plan-3col { grid-template-columns:1fr 1fr; } }
+@media(max-width:600px){ .plan-3col { grid-template-columns:1fr; } }
+.plan-empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+.reflect-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+@media(max-width:900px){ .reflect-grid { grid-template-columns:1fr; } }
+/* Priority done state */
+.priority-num.done { background:#d1fae5; color:#065f46; }
+.priority-num.done::after { content:'✓'; }
+.priority-input.done { text-decoration:line-through; color:var(--muted); }
+.priority-num { cursor:pointer; transition:all 0.2s; }
+.priority-num:hover { opacity:0.8; transform:scale(1.1); }
+
 /* User chip in sidebar */
 .user-chip { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(255,255,255,0.06); border-radius: 8px; margin-bottom: 10px; }
 .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
@@ -311,7 +425,8 @@ textarea { resize: vertical; min-height: 56px; }
 </div>
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="ant">🐜</div>
     <h1>The Ant Adventures</h1>
@@ -330,6 +445,8 @@ textarea { resize: vertical; min-height: 56px; }
     <div class="nav-item" onclick="nav('sales')"><span class="ico">📋</span> Sales & Quotes</div>
     <div class="nav-section">People</div>
     <div class="nav-item" onclick="nav('hr')"><span class="ico">👥</span> HR & Team</div>
+    <div style="height:1px;background:rgba(255,255,255,0.07);margin:6px 0"></div>
+    <div class="nav-item" onclick="nav('planning')"><span class="ico">📅</span> Daily Planning</div>
   </nav>
   <div class="sidebar-footer">
     <div class="user-chip" id="userChip">
@@ -353,9 +470,12 @@ textarea { resize: vertical; min-height: 56px; }
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
-    <div class="topbar-left">
-      <h2 id="pageTitle">Dashboard</h2>
-      <p id="pageDate"></p>
+    <div style="display:flex;align-items:center;flex:1;min-width:0">
+      <button id="hamburger" onclick="toggleSidebar()" title="Menu">☰</button>
+      <div class="topbar-left" style="min-width:0">
+        <h2 id="pageTitle">Dashboard</h2>
+        <p id="pageDate"></p>
+      </div>
     </div>
     <div class="topbar-right" id="topbarActions"></div>
   </div>
@@ -722,12 +842,14 @@ function loadDB() {
       if (!parsed.settings.nextAssetId) parsed.settings.nextAssetId = 1;
       if (!parsed.investments) parsed.investments = SEED_INVESTMENTS.map(i=>({...i}));
       if (!parsed.hr) parsed.hr = SEED_HR.map(h=>({...h}));
-      if (!parsed.settings.nextInvId) parsed.settings.nextInvId = 13;
-      if (!parsed.settings.nextHrId)  parsed.settings.nextHrId  = 7;
+      if (!parsed.settings.nextInvId)   parsed.settings.nextInvId   = 13;
+      if (!parsed.settings.nextHrId)    parsed.settings.nextHrId    = 7;
+      if (!parsed.plans)                parsed.plans                = [];
+      if (!parsed.settings.nextPlanId)  parsed.settings.nextPlanId  = 1;
       return parsed;
     }
   } catch(e) {}
-  return { transactions: SEED_TX.map(t=>({...t})), bookings: SEED_BOOKINGS.map(b=>({...b})), assets: [], investments: SEED_INVESTMENTS.map(i=>({...i})), hr: SEED_HR.map(h=>({...h})), settings: { fx: 25500, nextTxId: 53, nextBkId: 27, nextAssetId: 1, nextInvId: 13, nextHrId: 7, startingBalance: 360000000 } };
+  return { transactions: SEED_TX.map(t=>({...t})), bookings: SEED_BOOKINGS.map(b=>({...b})), assets: [], investments: SEED_INVESTMENTS.map(i=>({...i})), hr: SEED_HR.map(h=>({...h})), plans: [], settings: { fx: 25500, nextTxId: 53, nextBkId: 27, nextAssetId: 1, nextInvId: 13, nextHrId: 7, nextPlanId: 1, startingBalance: 360000000 } };
 }
 
 function saveDB() {
@@ -748,6 +870,8 @@ let db = loadDB();
 let currentTxType = 'out';
 let currentPage = 'dashboard';
 let txFilterMonth = 'All';
+let planViewUser = '';
+let planViewDate = '';
 
 // ============================================================
 // UTILS
@@ -801,9 +925,23 @@ const PAGE_META = {
   assets:       { title:'Sell Bikes & Tools', sub:'Asset liquidation tracker — office closing' },
   investment:   { title:'Initial Investment', sub:'Startup cost tracker' },
   hr:           { title:'HR & Team',          sub:'Team members & contact info' },
+  planning:     { title:'Daily Planning',     sub:'Morning plan & evening reflection' },
 };
 
+function toggleSidebar() {
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('sidebarOverlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('show', open);
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
 function nav(page) {
+  closeSidebar(); // auto-close drawer on mobile
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelector(`.nav-item[onclick="nav('${page}')"]`)?.classList.add('active');
@@ -825,6 +963,7 @@ function renderPage(page) {
   else if (page === 'assets')       { renderAssetsPage(c, actions); }
   else if (page === 'investment')   { renderInvestmentPage(c, actions); }
   else if (page === 'hr')           { renderHRPage(c, actions); }
+  else if (page === 'planning')     { renderPlanningPage(c, actions); }
 }
 
 // ============================================================
@@ -2195,6 +2334,346 @@ function deleteHr(id) {
 
 // ============================================================
 // AUTH — SHA-256 via SubtleCrypto (no external deps)
+// ============================================================
+// ============================================================
+// PLANNING MODULE
+// ============================================================
+
+function renderPlanningPage(container, actions) {
+  const session = getSession();
+  if (!planViewUser) planViewUser = session?.username || 'tai';
+  if (!planViewDate) planViewDate = new Date().toISOString().split('T')[0];
+
+  const myUser    = session?.username || 'tai';
+  const otherUser = myUser === 'tai' ? 'phuc' : 'tai';
+  const myName    = ACCOUNT_MAP[myUser]?.name.split(' ')[0]    || myUser;
+  const otherName = ACCOUNT_MAP[otherUser]?.name.split(' ')[0] || otherUser;
+
+  actions.innerHTML = `
+    <div class="person-toggle">
+      <button class="${planViewUser === myUser ? 'active' : ''}" onclick="switchPlanUser('${myUser}')">My Plan (${myName})</button>
+      <button class="${planViewUser === otherUser ? 'active' : ''}" onclick="switchPlanUser('${otherUser}')">${otherName}'s Plan</button>
+    </div>`;
+
+  buildPlanView(container);
+}
+
+function switchPlanUser(user) {
+  planViewUser = user;
+  buildPlanView(document.getElementById('content'));
+  // Re-render actions to update toggle highlight
+  const session = getSession();
+  const myUser    = session?.username || 'tai';
+  const otherUser = myUser === 'tai' ? 'phuc' : 'tai';
+  const myName    = ACCOUNT_MAP[myUser]?.name.split(' ')[0]    || myUser;
+  const otherName = ACCOUNT_MAP[otherUser]?.name.split(' ')[0] || otherUser;
+  document.getElementById('topbarActions').innerHTML = `
+    <div class="person-toggle">
+      <button class="${planViewUser === myUser ? 'active' : ''}" onclick="switchPlanUser('${myUser}')">My Plan (${myName})</button>
+      <button class="${planViewUser === otherUser ? 'active' : ''}" onclick="switchPlanUser('${otherUser}')">${otherName}'s Plan</button>
+    </div>`;
+}
+
+function switchPlanDate(date) {
+  planViewDate = date;
+  buildPlanView(document.getElementById('content'));
+}
+
+function getOrCreatePlan(user, date) {
+  if (!db.plans) db.plans = [];
+  let plan = db.plans.find(p => p.user === user && p.date === date);
+  if (!plan) {
+    plan = {
+      id: db.settings.nextPlanId++,
+      date,
+      user,
+      priorities: ['', '', ''],
+      priorityDone: [false, false, false],
+      tasks: [],
+      financialIntention: '',
+      reflection: { completed: '', carriedForward: '', win: '' }
+    };
+    db.plans.push(plan);
+    saveDB();
+  }
+  return plan;
+}
+
+function buildPlanView(container) {
+  const today = new Date().toISOString().split('T')[0];
+
+  // Last 7 days including today
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+
+  const dayLabel = (dateStr) => {
+    if (dateStr === today) return 'Today';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  };
+
+  const userName  = ACCOUNT_MAP[planViewUser]?.name.split(' ')[0] || planViewUser;
+  const planDates = new Set((db.plans||[]).filter(p => p.user === planViewUser).map(p => p.date));
+
+  // Auto-create today's plan so it's always ready
+  if (planViewDate === today) getOrCreatePlan(planViewUser, today);
+
+  const plan      = (db.plans||[]).find(p => p.user === planViewUser && p.date === planViewDate);
+  const dateObj   = new Date(planViewDate + 'T12:00:00');
+  const dateLabel = planViewDate === today
+    ? 'Today'
+    : dateObj.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  // Dynamic mini-calendar icon
+  const calMonth = dateObj.toLocaleDateString('en-US', { month:'short' }).toUpperCase();
+  const calDay   = dateObj.getDate();
+  const calWeek  = dateObj.toLocaleDateString('en-US', { weekday:'short' }).toUpperCase();
+  const miniCal  = `<div style="display:inline-flex;flex-direction:column;align-items:center;width:64px;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);margin-bottom:14px">
+    <div style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 0;width:100%;text-align:center">${calMonth}</div>
+    <div style="background:#fff;padding:4px 0 2px;width:100%;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#111;line-height:1">${calDay}</div>
+      <div style="font-size:9px;font-weight:600;color:#6b7280;letter-spacing:0.8px;padding-bottom:4px">${calWeek}</div>
+    </div>
+  </div>`;
+
+  container.innerHTML = `
+  <div class="day-pill-row">
+    ${days.map(d => `<div class="day-pill${d===planViewDate?' active':planDates.has(d)?' has-plan':''}" onclick="switchPlanDate('${d}')">${dayLabel(d)}</div>`).join('')}
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+    <h2 style="font-size:15px;font-weight:700;color:var(--text)">${userName}'s Plan — ${dateLabel}</h2>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="planSavedHint" style="font-size:11px;color:var(--green);opacity:0;transition:opacity 0.3s"></span>
+      ${!plan ? `<button class="btn btn-primary" onclick="createPlanForDate()">+ Start This Plan</button>` : ''}
+    </div>
+  </div>
+
+  ${!plan
+    ? `<div class="plan-section plan-empty-state">
+        ${miniCal}
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text)">No plan yet for ${dateLabel}</div>
+        <div style="font-size:12.5px;margin-bottom:20px">Click "+ Start This Plan" to create one</div>
+       </div>`
+    : renderPlanCard(plan)
+  }`;
+}
+
+function renderPlanCard(plan) {
+  const tasks    = plan.tasks || [];
+  const doneCt   = tasks.filter(t => t.done).length;
+  const priDone  = plan.priorityDone || [false, false, false];
+  const priDoneCt = priDone.filter(Boolean).length;
+
+  return `
+  <div class="plan-3col">
+
+    <!-- COL 1: Priorities + Financial -->
+    <div>
+      <div class="plan-section">
+        <div class="plan-section-title">🎯 Top 3 Priorities
+          <span style="margin-left:auto;font-size:11px;font-weight:400;color:var(--muted)">${priDoneCt}/3 done</span>
+        </div>
+        ${[0,1,2].map(i => {
+          const done = priDone[i];
+          return `
+        <div class="priority-row" id="prirow_${plan.id}_${i}">
+          <div class="priority-num${done?' done':''}" onclick="togglePriorityDone(${plan.id},${i})" title="Click to mark done">${done ? '' : (i+1)}</div>
+          <input class="priority-input${done?' done':''}" type="text"
+                 placeholder="Priority ${i+1}…"
+                 value="${planEsc(plan.priorities?.[i]||'')}"
+                 onblur="savePriority(${plan.id},${i},this.value)">
+        </div>`;
+        }).join('')}
+      </div>
+      <div class="plan-section">
+        <div class="plan-section-title">💰 Financial Intention</div>
+        <input class="plan-fin-input" type="text"
+               placeholder="e.g. Keep expenses under 2,000,000 VND today…"
+               value="${planEsc(plan.financialIntention||'')}"
+               onblur="saveFinancialIntention(${plan.id},this.value)">
+      </div>
+    </div>
+
+    <!-- COL 2: Task List -->
+    <div>
+      <div class="plan-section">
+        <div class="plan-section-title">📋 Task List
+          <span style="margin-left:auto;font-size:11px;font-weight:400;color:var(--muted)">${doneCt}/${tasks.length} done</span>
+        </div>
+        <div id="planTaskList_${plan.id}">
+          ${tasks.length === 0
+            ? `<div style="font-size:12.5px;color:var(--muted);padding:6px 0 8px">No tasks yet — add one below.</div>`
+            : tasks.map(t => `
+          <div class="task-row" id="ptask_${plan.id}_${t.id}">
+            <div class="task-row-top">
+              <input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="togglePlanTask(${plan.id},${t.id})">
+              <input type="text" class="task-text-inp${t.done?' done':''}"
+                     id="ptask-inp_${plan.id}_${t.id}"
+                     value="${planEsc(t.text)}" placeholder="Task…"
+                     onblur="savePlanTaskText(${plan.id},${t.id},this.value)">
+              <button class="task-edit-btn" onclick="document.getElementById('ptask-inp_${plan.id}_${t.id}').focus()" title="Edit">✏️</button>
+              <button class="task-del" onclick="deletePlanTask(${plan.id},${t.id})" title="Delete">🗑️</button>
+            </div>
+          </div>`).join('')}
+        </div>
+        <button class="add-task-btn" onclick="addPlanTask(${plan.id})">＋ Add task</button>
+      </div>
+    </div>
+
+    <!-- COL 3: Evening Reflection -->
+    <div>
+      <div class="plan-section">
+        <div class="plan-section-title">🌙 Evening Reflection</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;display:block;margin-bottom:5px">✅ What I completed</label>
+            <textarea class="plan-textarea" placeholder="List what you got done…"
+                      onblur="saveReflection(${plan.id},'completed',this.value)">${planEsc(plan.reflection?.completed||'')}</textarea>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;display:block;margin-bottom:5px">⏳ Carry forward</label>
+            <textarea class="plan-textarea" placeholder="What moves to tomorrow…"
+                      onblur="saveReflection(${plan.id},'carriedForward',this.value)">${planEsc(plan.reflection?.carriedForward||'')}</textarea>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;display:block;margin-bottom:5px">⭐ Win of the day</label>
+            <textarea class="plan-textarea" placeholder="Biggest win today…"
+                      onblur="saveReflection(${plan.id},'win',this.value)">${planEsc(plan.reflection?.win||'')}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+function planEsc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function flashPlanSaved() {
+  const el = document.getElementById('planSavedHint');
+  if (!el) return;
+  el.style.opacity = '1'; el.textContent = 'Saved ✓';
+  setTimeout(() => { el.style.opacity = '0'; }, 1500);
+}
+
+function createPlanForDate() {
+  getOrCreatePlan(planViewUser, planViewDate);
+  buildPlanView(document.getElementById('content'));
+}
+
+function togglePriorityDone(planId, idx) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  if (!plan.priorityDone) plan.priorityDone = [false, false, false];
+  plan.priorityDone[idx] = !plan.priorityDone[idx];
+  saveDB(); flashPlanSaved();
+  // Update in place
+  const row = document.getElementById(`prirow_${planId}_${idx}`);
+  if (row) {
+    const done = plan.priorityDone[idx];
+    const bubble = row.querySelector('.priority-num');
+    const input  = row.querySelector('.priority-input');
+    if (bubble) { bubble.classList.toggle('done', done); bubble.textContent = done ? '' : (idx+1); }
+    if (input)  { input.classList.toggle('done', done); }
+  }
+  // Update priority counter
+  const title = document.querySelector(`#prirow_${planId}_0`)?.closest('.plan-section')?.querySelector('.plan-section-title span');
+  if (title) title.textContent = `${plan.priorityDone.filter(Boolean).length}/3 done`;
+}
+
+function savePriority(planId, idx, val) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  if (!plan.priorities) plan.priorities = ['','',''];
+  plan.priorities[idx] = val;
+  saveDB(); flashPlanSaved();
+}
+
+function saveFinancialIntention(planId, val) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  plan.financialIntention = val;
+  saveDB(); flashPlanSaved();
+}
+
+function saveReflection(planId, field, val) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  if (!plan.reflection) plan.reflection = {};
+  plan.reflection[field] = val;
+  saveDB(); flashPlanSaved();
+}
+
+function addPlanTask(planId) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  if (!plan.tasks) plan.tasks = [];
+  const nextId = plan.tasks.length > 0 ? Math.max(...plan.tasks.map(t => t.id)) + 1 : 1;
+  plan.tasks.push({ id: nextId, text: '', done: false, tag: 'todo' });
+  saveDB();
+  buildPlanView(document.getElementById('content'));
+}
+
+function setTaskTag(planId, taskId, tag) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  const task = plan.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.tag = tag;
+  saveDB(); flashPlanSaved();
+  // Update tag highlights in place without full rebuild
+  const row = document.getElementById(`ptask_${planId}_${taskId}`);
+  if (row) {
+    row.querySelectorAll('.task-tag').forEach(el => {
+      const t = el.classList.contains('tag-todo') ? 'todo'
+               : el.classList.contains('tag-priority') ? 'priority' : 'urgent';
+      el.classList.toggle('active', t === tag);
+    });
+  }
+}
+
+function deletePlanTask(planId, taskId) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  plan.tasks = plan.tasks.filter(t => t.id !== taskId);
+  saveDB();
+  buildPlanView(document.getElementById('content'));
+}
+
+function togglePlanTask(planId, taskId) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  const task = plan.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.done = !task.done;
+  saveDB(); flashPlanSaved();
+  // Update row styling in place
+  const inp = document.querySelector(`#ptask_${planId}_${taskId} .task-text-inp`);
+  if (inp) inp.className = 'task-text-inp' + (task.done ? ' done' : '');
+  // Refresh done counter in title
+  const tasks   = plan.tasks;
+  const doneCt  = tasks.filter(t => t.done).length;
+  const counter = document.querySelector(`#planTaskList_${planId}`)?.closest('.plan-section')?.querySelector('.plan-section-title span');
+  if (counter) counter.textContent = `${doneCt}/${tasks.length} done`;
+}
+
+function savePlanTaskText(planId, taskId, val) {
+  const plan = db.plans.find(p => p.id === planId);
+  if (!plan) return;
+  const task = plan.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.text = val;
+  saveDB(); flashPlanSaved();
+}
+
+// ============================================================
+// AUTH
 // ============================================================
 const AUTH_KEY  = 'tad_auth_v1';
 const SESS_KEY  = 'tad_session_v1';
