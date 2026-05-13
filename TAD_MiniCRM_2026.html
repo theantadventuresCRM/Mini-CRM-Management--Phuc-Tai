@@ -787,7 +787,7 @@ const SEED_HR = [
 // ============================================================
 // DB
 // ============================================================
-const DB_KEY = 'tad_crm_2026_v3';
+const DB_KEY = 'tad_crm_2026_v4';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyc-myqwfk_nGaoEHsNUz3Yas30FvBTRgYJlo-DO_qWh8dBHOa7WMDDX2ag6VqgYXA/exec';
 
 function loadDB() {
@@ -808,10 +808,12 @@ function loadDB() {
       if (!parsed.settings.nextHrId)    parsed.settings.nextHrId    = 7;
       if (!parsed.plans)                parsed.plans                = [];
       if (!parsed.settings.nextPlanId)  parsed.settings.nextPlanId  = 1;
+      if (!parsed.payroll)              parsed.payroll              = [];
+      if (!parsed.settings.nextPayrollId) parsed.settings.nextPayrollId = 1;
       return parsed;
     }
   } catch(e) {}
-  return { transactions: SEED_TX.map(t=>({...t})), bookings: SEED_BOOKINGS.map(b=>({...b})), assets: [], investments: SEED_INVESTMENTS.map(i=>({...i})), hr: SEED_HR.map(h=>({...h})), plans: [], settings: { fx: 25500, nextTxId: 53, nextBkId: 27, nextAssetId: 1, nextInvId: 13, nextHrId: 7, nextPlanId: 1, startingBalance: 360000000 } };
+  return { transactions: SEED_TX.map(t=>({...t})), bookings: SEED_BOOKINGS.map(b=>({...b})), assets: [], investments: SEED_INVESTMENTS.map(i=>({...i})), hr: SEED_HR.map(h=>({...h})), plans: [], payroll: [], settings: { fx: 25500, nextTxId: 53, nextBkId: 27, nextAssetId: 1, nextInvId: 13, nextHrId: 7, nextPlanId: 1, nextPayrollId: 1, startingBalance: 360000000 } };
 }
 
 function saveDB() {
@@ -954,7 +956,7 @@ function renderPage(page) {
   if (page === 'dashboard')    { c.innerHTML = renderDashboard(); }
   else if (page === 'transactions') { renderTransactions(c, actions); }
   else if (page === 'cashflow')     { c.innerHTML = renderCashflow(); }
-  else if (page === 'payroll')      { c.innerHTML = renderPayroll(); }
+  else if (page === 'payroll')      { renderPayrollPage(c, actions); }
   else if (page === 'sales')        { renderSales(c, actions); }
   else if (page === 'assets')       { renderAssetsPage(c, actions); }
   else if (page === 'investment')   { renderInvestmentPage(c, actions); }
@@ -1388,62 +1390,159 @@ function renderCashflow() {
 // ============================================================
 // PAYROLL
 // ============================================================
-function renderPayroll() {
-  return `
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">👥 Staff Roster</span>
+function renderPayrollPage(container, actions) {
+  actions.innerHTML = `<button class="btn btn-primary" onclick="openPayrollModal()">+ Add Payroll Record</button>`;
+  buildPayrollView(container);
+}
+
+function buildPayrollView(container) {
+  const records = (db.payroll || []).sort((a,b) => b.id - a.id);
+  const totalPaid = records.reduce((s,r) => s + (parseFloat(r.total)||0), 0);
+
+  // Monthly summary
+  const byMonth = {};
+  records.forEach(r => {
+    if (!byMonth[r.month]) byMonth[r.month] = 0;
+    byMonth[r.month] += parseFloat(r.total)||0;
+  });
+
+  container.innerHTML = `
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <span class="card-title">💰 Payroll Records</span>
+      <span style="font-size:12px;color:var(--muted)">${records.length} records &nbsp;·&nbsp; Total paid: <strong style="color:var(--red)">${fmt(totalPaid)} ₫</strong></span>
     </div>
+    ${records.length === 0
+      ? `<div style="padding:32px;text-align:center;color:var(--muted)">No payroll records yet — click <strong>+ Add Payroll Record</strong> to start tracking salary payments.</div>`
+      : `<table>
+          <thead><tr>
+            <th>Staff</th><th>Month</th>
+            <th style="text-align:right">Base Salary</th>
+            <th style="text-align:right">Bonus</th>
+            <th style="text-align:right">Deductions</th>
+            <th style="text-align:right">Total</th>
+            <th>Paid Date</th><th>Notes</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${records.map(r=>`<tr>
+              <td style="font-weight:600">${r.staffName}</td>
+              <td>${r.month}</td>
+              <td style="text-align:right">${fmt(r.baseSalary||0)}</td>
+              <td style="text-align:right;color:var(--green)">${r.bonus ? '+'+fmt(r.bonus) : '—'}</td>
+              <td style="text-align:right;color:var(--red)">${r.deductions ? '-'+fmt(r.deductions) : '—'}</td>
+              <td style="text-align:right;font-weight:700;color:var(--red)">-${fmt(r.total||0)}</td>
+              <td style="color:var(--muted)">${r.paidDate||'—'}</td>
+              <td style="font-size:11px;color:var(--muted)">${r.notes||''}</td>
+              <td style="white-space:nowrap">
+                <button class="btn-icon" onclick="openPayrollModal(${r.id})" title="Edit">✏️</button>
+                <button class="btn-icon" onclick="deletePayroll(${r.id})" title="Delete">🗑️</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`}
+  </div>
+
+  ${Object.keys(byMonth).length > 0 ? `
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header"><span class="card-title">📅 Monthly Payroll Summary</span></div>
     <table>
-      <thead><tr>
-        <th>Vietnamese Name</th><th>English</th><th>Position</th><th>Department</th>
-        <th>Salary Type</th><th>Base Salary (VND)</th><th>Status</th>
-      </tr></thead>
+      <thead><tr><th>Month</th><th style="text-align:right">Total Paid (VND)</th><th style="text-align:right">Total Paid (USD)</th></tr></thead>
       <tbody>
-        ${SEED_STAFF.map(s=>`<tr>
-          <td style="font-weight:600">${s.name}</td>
-          <td>${s.eng}</td>
-          <td style="color:var(--muted)">${s.pos}</td>
-          <td><span class="badge badge-blue">${s.dept}</span></td>
-          <td>${s.type}</td>
-          <td style="font-weight:600">${s.base}</td>
-          <td><span class="badge badge-green">${s.status}</span></td>
+        ${Object.entries(byMonth).map(([m,total])=>`<tr>
+          <td style="font-weight:600">${m}</td>
+          <td style="text-align:right;color:var(--red);font-weight:600">-${fmt(total)}</td>
+          <td style="text-align:right;color:var(--muted)">~$${(total/(db.settings.fx||25500)).toFixed(0)}</td>
         </tr>`).join('')}
       </tbody>
     </table>
-  </div>
+  </div>` : ''}
 
-  <div class="two-col">
-    <div class="card">
-      <div class="card-header"><span class="card-title">💸 Salary Paid in Transactions</span></div>
-      <table>
-        <thead><tr><th>Description</th><th>Month</th><th style="text-align:right">Amount ₫</th></tr></thead>
-        <tbody>
-          ${db.transactions
-              .filter(t => t.cat === 'Office' && t.desc.toLowerCase().includes('salary'))
-              .sort((a,b) => new Date(b.date)-new Date(a.date))
-              .map(t=>`<tr>
-                <td>${t.desc}</td>
-                <td>${t.month||monthFromDate(t.date)}</td>
-                <td style="text-align:right" class="amt-out">-${fmt(t.expense)}</td>
-              </tr>`).join('') || '<tr><td colspan="3"><div class="empty">No salary records</div></td></tr>'}
-        </tbody>
-      </table>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">📌 Key KPIs</span></div>
-      <div class="card-body">
-        ${SEED_STAFF.map(s=>`
-        <div class="stat-pill">
-          <span style="font-weight:600">${s.eng}</span>
-          <span style="font-size:11px;color:var(--muted)">${s.dept}</span>
-        </div>`).join('')}
-        <div style="padding:12px 16px;font-size:11.5px;color:var(--muted)">
-          KPI targets: Revenue · CSAT · Tours sold · Brand growth · Conversion rate
-        </div>
-      </div>
-    </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">👥 Staff Roster</span></div>
+    <table>
+      <thead><tr>
+        <th>Name</th><th>English</th><th>Position</th><th>Pay Rate</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        ${(db.hr||[]).map(h=>`<tr>
+          <td style="font-weight:600">${h.name}</td>
+          <td>${h.eng||''}</td>
+          <td style="color:var(--muted)">${h.pos||''}</td>
+          <td>${h.salary||'—'}</td>
+          <td><span class="badge badge-green">${h.status||'Active'}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
   </div>`;
+}
+
+let editingPayrollId = null;
+
+function openPayrollModal(id) {
+  editingPayrollId = id || null;
+  const r = id ? (db.payroll||[]).find(x => x.id === id) : null;
+  document.getElementById('payrollModalTitle').textContent = id ? 'Edit Payroll Record' : 'Add Payroll Record';
+
+  // Populate staff dropdown from live HR list
+  const staffSelect = document.getElementById('payrollStaff');
+  const staffNames = (db.hr||[]).filter(h => h.status === 'Active').map(h => h.name);
+  staffSelect.innerHTML = staffNames.map(n =>
+    `<option value="${n}" ${r && r.staffName===n ? 'selected':''}>${n}</option>`
+  ).join('');
+
+  document.getElementById('payrollMonth').value      = r ? r.month      : '';
+  document.getElementById('payrollBase').value       = r ? r.baseSalary : '';
+  document.getElementById('payrollBonus').value      = r ? (r.bonus||0) : 0;
+  document.getElementById('payrollDeductions').value = r ? (r.deductions||0) : 0;
+  document.getElementById('payrollNotes').value      = r ? (r.notes||'') : '';
+  document.getElementById('payrollPaidDate').value   = r ? (r.paidDate||'') : '';
+  calcPayrollTotal();
+  document.getElementById('payrollModal').classList.add('show');
+}
+
+function calcPayrollTotal() {
+  const base = parseFloat(document.getElementById('payrollBase').value)||0;
+  const bonus = parseFloat(document.getElementById('payrollBonus').value)||0;
+  const ded   = parseFloat(document.getElementById('payrollDeductions').value)||0;
+  const total = base + bonus - ded;
+  document.getElementById('payrollTotal').textContent = fmt(total) + ' ₫';
+}
+
+function savePayroll() {
+  const staffName = document.getElementById('payrollStaff').value;
+  const month     = document.getElementById('payrollMonth').value.trim();
+  if (!staffName || !month) { alert('Please select a staff member and enter a month.'); return; }
+  const base  = parseFloat(document.getElementById('payrollBase').value)||0;
+  const bonus = parseFloat(document.getElementById('payrollBonus').value)||0;
+  const ded   = parseFloat(document.getElementById('payrollDeductions').value)||0;
+  const record = {
+    staffName, month,
+    baseSalary: base, bonus, deductions: ded,
+    total:      base + bonus - ded,
+    notes:      document.getElementById('payrollNotes').value.trim(),
+    paidDate:   document.getElementById('payrollPaidDate').value,
+  };
+  if (!db.payroll) db.payroll = [];
+  if (editingPayrollId) {
+    const idx = db.payroll.findIndex(r => r.id === editingPayrollId);
+    if (idx > -1) db.payroll[idx] = { id: editingPayrollId, ...record };
+    toast('✏️ Payroll record updated!');
+  } else {
+    db.payroll.push({ id: db.settings.nextPayrollId++, ...record });
+    toast('✅ Payroll record added!');
+  }
+  editingPayrollId = null;
+  saveDB();
+  closeModal('payrollModal');
+  buildPayrollView(document.getElementById('content'));
+}
+
+function deletePayroll(id) {
+  if (!confirm('Delete this payroll record?')) return;
+  db.payroll = (db.payroll||[]).filter(r => r.id !== id);
+  saveDB();
+  toast('🗑️ Record deleted');
+  buildPayrollView(document.getElementById('content'));
 }
 
 // ============================================================
@@ -2817,6 +2916,56 @@ init();
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('hrModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveHr()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYROLL MODAL -->
+<div class="overlay" id="payrollModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <div class="modal-title" id="payrollModalTitle">Add Payroll Record</div>
+      <button class="modal-close" onclick="closeModal('payrollModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Staff Member *</label>
+          <select class="form-input" id="payrollStaff"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Month *</label>
+          <input class="form-input" id="payrollMonth" placeholder="e.g. Mar 2026" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Base Salary (VND)</label>
+          <input class="form-input" id="payrollBase" type="number" placeholder="0" oninput="calcPayrollTotal()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bonus (VND)</label>
+          <input class="form-input" id="payrollBonus" type="number" placeholder="0" value="0" oninput="calcPayrollTotal()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deductions (VND)</label>
+          <input class="form-input" id="payrollDeductions" type="number" placeholder="0" value="0" oninput="calcPayrollTotal()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Paid Date</label>
+          <input class="form-input" id="payrollPaidDate" type="date" />
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Notes</label>
+          <input class="form-input" id="payrollNotes" placeholder="Optional notes" />
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Total (auto-calculated)</label>
+          <div style="background:var(--red-light);color:var(--red);font-weight:700;font-size:15px;padding:9px 12px;border-radius:6px" id="payrollTotal">0 ₫</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('payrollModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePayroll()">Save Record</button>
     </div>
   </div>
 </div>
