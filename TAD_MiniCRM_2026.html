@@ -787,7 +787,7 @@ const SEED_HR = [
 // ============================================================
 // DB
 // ============================================================
-const DB_KEY = 'tad_crm_2026_v4';
+const DB_KEY = 'tad_crm_2026_v5';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyc-myqwfk_nGaoEHsNUz3Yas30FvBTRgYJlo-DO_qWh8dBHOa7WMDDX2ag6VqgYXA/exec';
 
 function loadDB() {
@@ -2812,7 +2812,7 @@ function bootCRM(username) {
   document.getElementById('pageDate').textContent = 'Live overview of your business';
   document.getElementById('fxDisplay').textContent = `1 USD = ${fmt(db.settings.fx)} VND`;
   nav('dashboard');
-  pullFromSheets(); // async background sync — refreshes UI when Sheets data arrives
+  // pullFromSheets(); // TEMPORARILY DISABLED — Sheet sync causing data corruption
 }
 
 // ============================================================
