@@ -523,7 +523,7 @@ textarea { resize: vertical; min-height: 56px; }
 <div class="overlay" id="bookingModal">
   <div class="modal">
     <div class="modal-header">
-      <h3>Add Booking / Quote</h3>
+      <h3 id="bModalTitle">Add Booking / Quote</h3>
       <button class="modal-close" onclick="closeModal('bookingModal')">×</button>
     </div>
     <div class="form-grid">
@@ -872,7 +872,7 @@ async function pullFromSheets() {
     const merged = {
       transactions: data.transactions,
       bookings:     (data.bookings  && data.bookings.length  > 0) ? data.bookings  : db.bookings,
-      assets:       Array.isArray(data.assets)      ? data.assets      : db.assets,
+      assets:       (Array.isArray(data.assets) && data.assets.length > 0) ? data.assets : db.assets,
       investments:  (data.investments && data.investments.length > 0) ? data.investments : db.investments,
       hr:           (data.hr && data.hr.length > 0) ? data.hr          : db.hr,
       payroll:      Array.isArray(data.payroll)     ? data.payroll     : db.payroll,
