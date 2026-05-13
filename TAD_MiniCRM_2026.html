@@ -843,12 +843,57 @@ async function pullFromSheets() {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getAll', { cache: 'no-store' });
     if (!res.ok) return;
     const data = await res.json();
-    if (data && data.transactions && Array.isArray(data.transactions)) {
-      db = data;
-      localStorage.setItem(DB_KEY, JSON.stringify(db)); // keep localStorage in sync
-      nav(currentPage); // refresh current view with fresh data
-      console.log('[AntCRM] ✅ Synced from Google Sheets');
+
+    // --- VALIDATION: only accept data that looks correct ---
+    if (!data || !Array.isArray(data.transactions)) return;
+
+    // If Sheet has transactions, validate field names on first row
+    if (data.transactions.length > 0) {
+      const sample = data.transactions[0];
+      const required = ['date', 'dept', 'cat', 'desc'];
+      const valid = required.every(f => f in sample && sample[f] !== '' && sample[f] !== undefined);
+      if (!valid) {
+        console.log('[AntCRM] ⚠️ Sheet transaction fields invalid — skipping pull to protect local data');
+        return;
+      }
+    } else {
+      // Sheet is empty — do not overwrite localStorage seed data
+      console.log('[AntCRM] ℹ️ Sheet transactions empty — keeping local data');
+      return;
     }
+
+    // Validate settings has critical fields
+    if (!data.settings || !data.settings.fx) {
+      console.log('[AntCRM] ⚠️ Sheet settings invalid — skipping pull');
+      return;
+    }
+
+    // Safe merge: Sheet data wins for arrays, but preserve max ID counters
+    const merged = {
+      transactions: data.transactions,
+      bookings:     (data.bookings  && data.bookings.length  > 0) ? data.bookings  : db.bookings,
+      assets:       Array.isArray(data.assets)      ? data.assets      : db.assets,
+      investments:  (data.investments && data.investments.length > 0) ? data.investments : db.investments,
+      hr:           (data.hr && data.hr.length > 0) ? data.hr          : db.hr,
+      payroll:      Array.isArray(data.payroll)     ? data.payroll     : db.payroll,
+      plans:        db.plans, // plans are localStorage-only
+      settings: {
+        ...db.settings,
+        fx:             Number(data.settings.fx)             || db.settings.fx,
+        startingBalance:Number(data.settings.startingBalance)|| db.settings.startingBalance,
+        nextTxId:       Math.max(Number(data.settings.nextTxId)  ||0, db.settings.nextTxId  ||0),
+        nextBkId:       Math.max(Number(data.settings.nextBkId)  ||0, db.settings.nextBkId  ||0),
+        nextHrId:       Math.max(Number(data.settings.nextHrId)  ||0, db.settings.nextHrId  ||0),
+        nextInvId:      Math.max(Number(data.settings.nextInvId) ||0, db.settings.nextInvId ||0),
+        nextAssetId:    Math.max(Number(data.settings.nextAssetId)||0, db.settings.nextAssetId||0),
+        nextPayrollId:  Math.max(Number(data.settings.nextPayrollId)||0, db.settings.nextPayrollId||0),
+      }
+    };
+
+    db = merged;
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+    nav(currentPage);
+    console.log('[AntCRM] ✅ Synced from Google Sheets — ' + db.transactions.length + ' transactions');
   } catch(e) {
     console.log('[AntCRM] ⚠️ Sheets sync failed, using localStorage:', e.message);
   }
@@ -2812,7 +2857,7 @@ function bootCRM(username) {
   document.getElementById('pageDate').textContent = 'Live overview of your business';
   document.getElementById('fxDisplay').textContent = `1 USD = ${fmt(db.settings.fx)} VND`;
   nav('dashboard');
-  // pullFromSheets(); // TEMPORARILY DISABLED — Sheet sync causing data corruption
+  pullFromSheets(); // async background sync — refreshes UI when Sheets data arrives
 }
 
 // ============================================================
